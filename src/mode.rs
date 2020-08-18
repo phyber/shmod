@@ -3,6 +3,7 @@ use std::fmt;
 use std::ops::Range;
 
 // Hold a mode
+#[derive(Debug)]
 pub struct Mode(usize);
 
 const BITS: &[&str] = &[
@@ -151,5 +152,68 @@ impl fmt::Display for Mode {
         let other = self.other();
 
         write!(f, "{}{}{}", user, group, other)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_display_from_octal() {
+        let tests = vec![
+            (0o000,  "---------"),
+            (0o644,  "rw-r--r--"),
+            (0o755,  "rwxr-xr-x"),
+            (0o0000, "---------"),
+            (0o0644, "rw-r--r--"),
+            (0o0755, "rwxr-xr-x"),
+            (0o1712, "rwx--x-wT"),
+            (0o1000, "--------T"),
+            (0o1001, "--------t"),
+            (0o2000, "-----S---"),
+            (0o2010, "-----s---"),
+            (0o4000, "--S------"),
+            (0o4100, "--s------"),
+            (0o7666, "rwSrwSrwT"),
+            (0o7777, "rwsrwsrwt"),
+        ];
+
+        for test in tests {
+            let input    = test.0;
+            let expected = test.1;
+            let mode     = Mode::new(input).to_string();
+
+            assert_eq!(expected, mode)
+        }
+    }
+
+    #[test]
+    fn test_display_from_string() {
+        let tests = vec![
+            ("000",  "---------"),
+            ("644",  "rw-r--r--"),
+            ("755",  "rwxr-xr-x"),
+            ("0000", "---------"),
+            ("0644", "rw-r--r--"),
+            ("0755", "rwxr-xr-x"),
+            ("1712", "rwx--x-wT"),
+            ("1000", "--------T"),
+            ("2000", "-----S---"),
+            ("4000", "--S------"),
+            ("1001", "--------t"),
+            ("2010", "-----s---"),
+            ("4100", "--s------"),
+            ("7666", "rwSrwSrwT"),
+            ("7777", "rwsrwsrwt"),
+        ];
+
+        for test in tests {
+            let input    = test.0;
+            let expected = test.1;
+            let mode     = Mode::from_str(input).unwrap().to_string();
+
+            assert_eq!(expected, mode)
+        }
     }
 }
