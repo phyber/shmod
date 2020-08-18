@@ -1,7 +1,10 @@
 //
 use std::env;
+use std::process::exit;
 
+mod error;
 mod mode;
+use error::Error;
 use mode::Mode;
 
 fn main() {
@@ -12,13 +15,15 @@ fn main() {
     }
     else {
         eprintln!("{}", "Provide a mode");
-        ::std::process::exit(1);
+
+        exit(1);
     };
 
     let mode = Mode::from_str(mode)
         .unwrap_or_else(|e| {
-            eprintln!("Error: {}", e);
-            ::std::process::exit(1);
+            eprintln!("{}", e);
+
+            exit(1);
         });
 
     println!("{}", mode);

@@ -1,4 +1,5 @@
 //
+use super::Error;
 use std::fmt;
 use std::ops::Range;
 
@@ -53,15 +54,17 @@ impl Mode {
 
     // Takes a string and converts it to octal
     // Can fail if numbers are over 7
-    pub fn from_str(input: &str) -> Result<Self, String> {
+    pub fn from_str(input: &str) -> Result<Self, Error> {
         let mut output: usize = 0;
 
         // iterate over string
         for c in input.chars() {
-            let i: usize = c.to_string().parse().unwrap();
+            let i: usize = c.to_string().parse()?;
 
             if i > OCTAL_MAX {
-                return Err("over 7".to_owned());
+                let err = Error::DigitTooLarge(i);
+
+                return Err(err);
             }
 
             output = (output << OCTAL_DIGIT_SIZE) | i;
