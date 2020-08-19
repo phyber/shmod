@@ -147,18 +147,20 @@ impl FromStr for Mode {
         let mut output: usize = 0;
 
         for c in input.trim().chars() {
-            let i: usize = c.to_string().parse()?;
+            let digit: usize = c.to_string().parse()?;
 
-            if i > OCTAL_MAX {
-                let err = Error::DigitTooLarge(i);
+            if digit > OCTAL_MAX {
+                let err = Error::DigitTooLarge(digit);
 
                 return Err(err);
             }
 
-            output = (output << OCTAL_DIGIT_SIZE) | i;
+            output = (output << OCTAL_DIGIT_SIZE) | digit;
         }
 
-        Ok(Self::new(output))
+        let mode = Self::new(output);
+
+        Ok(mode)
     }
 }
 
