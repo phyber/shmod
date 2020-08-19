@@ -2,6 +2,7 @@
 use super::Error;
 use std::fmt;
 use std::ops::Range;
+use std::str::FromStr;
 
 // Hold a mode
 #[derive(Debug)]
@@ -50,27 +51,6 @@ const BITS_RANGE: Range<usize> = 2..3;
 impl Mode {
     pub fn new(mode: usize) -> Self {
         Self(mode)
-    }
-
-    // Takes a string and converts it to octal
-    // Can fail if numbers are over 7
-    pub fn from_str(input: &str) -> Result<Self, Error> {
-        let mut output: usize = 0;
-
-        // iterate over string
-        for c in input.chars() {
-            let i: usize = c.to_string().parse()?;
-
-            if i > OCTAL_MAX {
-                let err = Error::DigitTooLarge(i);
-
-                return Err(err);
-            }
-
-            output = (output << OCTAL_DIGIT_SIZE) | i;
-        }
-
-        Ok(Self::new(output))
     }
 
     fn permission(&self, shift: usize) -> String {
@@ -155,6 +135,30 @@ impl fmt::Display for Mode {
         let other = self.other();
 
         write!(f, "{}{}{}", user, group, other)
+    }
+}
+
+impl FromStr for Mode {
+    type Err = Error;
+
+    // Takes a string and converts it to octal
+    // Can fail if numbers are over 7, or we can't parse the input to a number
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let mut output: usize = 0;
+
+        for c in input.trim().chars() {
+            let i: usize = c.to_string().parse()?;
+
+            if i > OCTAL_MAX {
+                let err = Error::DigitTooLarge(i);
+
+                return Err(err);
+            }
+
+            output = (output << OCTAL_DIGIT_SIZE) | i;
+        }
+
+        Ok(Self::new(output))
     }
 }
 
