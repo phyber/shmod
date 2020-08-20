@@ -214,8 +214,8 @@ mod tests {
             ("4100",  "--s------"),
             ("7666",  "rwSrwSrwT"),
             ("7777",  "rwsrwsrwt"),
-            (" 755",  "rwxr-xr-x"),
             ("755 ",  "rwxr-xr-x"),
+            (" 755",  "rwxr-xr-x"),
             (" 755 ", "rwxr-xr-x"),
         ];
 
