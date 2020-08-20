@@ -20,7 +20,7 @@ const BITS: &[&str] = &[
 ];
 
 // Mask for discovering permissions
-const BITS_MASK: usize = 7;
+const BITS_MASK: usize = 0b0111;
 
 // Masks for detecting extra bits.
 // Sticky bit
