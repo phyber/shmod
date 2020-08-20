@@ -4,13 +4,13 @@ use std::num;
 
 #[derive(Debug)]
 pub enum Error {
-    DigitTooLarge(usize),
-    ParseIntError(num::ParseIntError),
+    OctalDigitTooLarge(usize),
+    OctalStringParseError(num::ParseIntError),
 }
 
 impl From<num::ParseIntError> for Error {
     fn from(error: num::ParseIntError) -> Error {
-        Error::ParseIntError(error)
+        Error::OctalStringParseError(error)
     }
 }
 

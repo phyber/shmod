@@ -30,20 +30,15 @@ const S_ISGID: usize = 0o2000;
 // Set UID
 const S_ISUID: usize = 0o4000;
 
+// Executable bits for user, group, other.
 const S_IXUSR: usize = 0o0100;
 const S_IXGRP: usize = 0o0010;
 const S_IXOTH: usize = 0o0001;
 
-// Shift amounts for calculating permissions.
+// Shift amounts for calculating string permissions.
 const SHIFT_OTH: usize = 0;
 const SHIFT_GRP: usize = 3;
 const SHIFT_USR: usize = 6;
-
-// Max size of an octal digit.
-const OCTAL_MAX: usize = 7;
-
-// Number of bits to shift octal binary by when converting string to number
-const OCTAL_DIGIT_SIZE: usize = 3;
 
 // Replacement range for permission bits
 const BITS_RANGE: Range<usize> = 2..3;
@@ -146,16 +141,20 @@ impl FromStr for Mode {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let mut output: usize = 0;
 
+        // Trims leading and trailing whitespace from the input before
+        // processing it.
         for c in input.trim().chars() {
             let digit: usize = c.to_string().parse()?;
 
-            if digit > OCTAL_MAX {
-                let err = Error::DigitTooLarge(digit);
+            // Octal is 3 bits, making the max a number can be 7.
+            if digit > 7 {
+                let err = Error::OctalDigitTooLarge(digit);
 
                 return Err(err);
             }
 
-            output = (output << OCTAL_DIGIT_SIZE) | digit;
+            // Octal is 3 bits, so we shift by 3 for each digit.
+            output = (output << 3) | digit;
         }
 
         let mode = Self::new(output);
