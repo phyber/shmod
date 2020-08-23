@@ -5,8 +5,10 @@ use std::str::FromStr;
 
 mod error;
 mod mode;
+mod mode_type;
 use error::Error;
 use mode::Mode;
+use mode_type::ModeType;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

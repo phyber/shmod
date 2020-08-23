@@ -1,5 +1,6 @@
 //
 use super::Error;
+use super::ModeType;
 use std::fmt;
 use std::ops::Range;
 use std::str::FromStr;
@@ -139,23 +140,30 @@ impl FromStr for Mode {
     // Takes a string and converts it to octal
     // Can fail if numbers are over 7, or we can't parse the input to a number
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let mut output: usize = 0;
-
         // Trims leading and trailing whitespace from the input before
         // processing it.
-        for c in input.trim().chars() {
-            let digit: usize = c.to_string().parse()?;
+        let input = input.trim();
 
-            // Octal is 3 bits, making the max a number can be 7.
-            if digit > 7 {
-                let err = Error::OctalDigitTooLarge(digit);
+        let output = match ModeType::from_str(input)? {
+            ModeType::OctalNumeric => {
+                let mut output: usize = 0;
 
-                return Err(err);
-            }
+                // Characters were checked for validity during ModeType parsing
+                // so we should always parse successfully here and no digits
+                // should be > 7.
+                for c in input.trim().chars() {
+                    let digit: usize = c.to_string().parse()?;
 
-            // Octal is 3 bits, so we shift by 3 for each digit.
-            output = (output << 3) | digit;
-        }
+                    // Octal is 3 bits, so we shift by 3 for each digit.
+                    output = (output << 3) | digit;
+                }
+
+                output
+            },
+            ModeType::FileMode => {
+                0
+            },
+        };
 
         let mode = Self::new(output);
 
