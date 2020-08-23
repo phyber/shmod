@@ -1,4 +1,5 @@
 // errors
+use std::error;
 use std::fmt;
 use std::num;
 
@@ -13,6 +14,8 @@ impl From<num::ParseIntError> for Error {
         Error::OctalStringParseError(error)
     }
 }
+
+impl error::Error for Error {}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
