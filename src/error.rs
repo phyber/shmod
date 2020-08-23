@@ -3,8 +3,10 @@ use std::error;
 use std::fmt;
 use std::num;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
+    InvalidModeString,
+    InvalidOctalChar(char),
     OctalDigitTooLarge(usize),
     OctalStringParseError(num::ParseIntError),
 }
