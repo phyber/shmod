@@ -10,14 +10,14 @@ use std::str::FromStr;
 pub struct Mode(usize);
 
 const BITS: &[&str] = &[
-    "---",
-    "--x",
-    "-w-",
-    "-wx",
-    "r--",
-    "r-x",
-    "rw-",
-    "rwx",
+    "---", // 0b000 // 0
+    "--x", // 0b001 // 1
+    "-w-", // 0b010 // 2
+    "-wx", // 0b011 // 3
+    "r--", // 0b100 // 4
+    "r-x", // 0b101 // 5
+    "rw-", // 0b110 // 6
+    "rwx", // 0b111 // 7
 ];
 
 // Mask for discovering permissions
@@ -150,6 +150,7 @@ impl FromStr for Mode {
         let input    = input.trim();
         let mut mode = Self::new(0);
 
+        // Work out which type of mode string we're dealing with and handle it
         match ModeType::from_str(input)? {
             ModeType::OctalNumeric => {
                 // Characters were checked for validity during ModeType parsing
