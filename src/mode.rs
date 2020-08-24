@@ -168,35 +168,28 @@ impl FromStr for Mode {
                 for (i, c) in input.chars().enumerate() {
                     match c {
                         'r' | 'w' | 'x' => {
-                            output |= 0o0001 << index
-                        },
-                        's' => {
-                            let bit = match i {
-                                2 => 0o4000,
-                                5 => 0o2000,
-                                _ => {
-                                    let err = Error::InvalidModeString;
-                                    return Err(err);
-                                },
-                            };
-
-                            output |= bit;
                             output |= 0o0001 << index;
                         },
-                        'S' => {
+                        's' | 'S' => {
                             let bit = match i {
                                 2 => 0o4000,
                                 5 => 0o2000,
                                 _ => unreachable!(),
                             };
 
-                            output |= bit
+                            output |= bit;
+
+                            if c == 's' {
+                                output |= 0o0001 << index;
+                            }
                         },
-                        't' => {
+                        't' | 'T' => {
                             output |= 0o1000;
-                            output |= 0o0001 << index;
+
+                            if c == 't' {
+                                output |= 0o0001 << index;
+                            }
                         },
-                        'T' => output |= 0o1000,
                         '-' => {},
                         _   => unreachable!(),
                     };
