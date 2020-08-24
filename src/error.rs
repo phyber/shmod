@@ -6,8 +6,6 @@ use std::num;
 #[derive(Debug, PartialEq)]
 pub enum Error {
     InvalidModeString,
-    InvalidOctalChar(char),
-    OctalDigitTooLarge(usize),
     OctalStringParseError(num::ParseIntError),
 }
 
