@@ -18,6 +18,9 @@ This tool may be of use to people new to Unix type permissions who want to
 experiment with various permission notations to see how the octal and symbolic
 representations correspond to each other.
 
+The tool is named `shmod` because it shows file-modes, this naming is similar
+to `chmod` which changes file-modes.
+
 <!-- links -->
 [Numeric]: https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
 [Octal]: https://en.wikipedia.org/wiki/Octal
