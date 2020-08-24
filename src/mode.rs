@@ -126,11 +126,12 @@ impl Mode {
 
 impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let user  = self.user();
-        let group = self.group();
-        let other = self.other();
-
-        write!(f, "{}{}{}", user, group, other)
+        write!(f, "{octal:03o}: {user}{group}{other}",
+            octal = self.0,
+            user = self.user(),
+            group = self.group(),
+            other = self.other(),
+        )
     }
 }
 
@@ -146,7 +147,7 @@ impl FromStr for Mode {
 
         let output = match ModeType::from_str(input)? {
             ModeType::OctalNumeric => {
-                let mut output: usize = 0;
+                let mut output = 0;
 
                 // Characters were checked for validity during ModeType parsing
                 // so we should always parse successfully here and no digits
@@ -161,7 +162,49 @@ impl FromStr for Mode {
                 output
             },
             ModeType::FileMode => {
-                0
+                let mut output = 0;
+                let mut index  = 8;
+
+                for (i, c) in input.chars().enumerate() {
+                    match c {
+                        'r' | 'w' | 'x' => {
+                            output |= 0o0001 << index
+                        },
+                        's' => {
+                            let bit = match i {
+                                2 => 0o4000,
+                                5 => 0o2000,
+                                _ => {
+                                    let err = Error::InvalidModeString;
+                                    return Err(err);
+                                },
+                            };
+
+                            output |= bit;
+                            output |= 0o0001 << index;
+                        },
+                        'S' => {
+                            let bit = match i {
+                                2 => 0o4000,
+                                5 => 0o2000,
+                                _ => unreachable!(),
+                            };
+
+                            output |= bit
+                        },
+                        't' => {
+                            output |= 0o1000;
+                            output |= 0o0001 << index;
+                        },
+                        'T' => output |= 0o1000,
+                        '-' => {},
+                        _   => unreachable!(),
+                    };
+
+                    index -= 1;
+                }
+
+                output
             },
         };
 
@@ -178,21 +221,21 @@ mod tests {
     #[test]
     fn test_display_from_octal() {
         let tests = vec![
-            (0o000,  "---------"),
-            (0o644,  "rw-r--r--"),
-            (0o755,  "rwxr-xr-x"),
-            (0o0000, "---------"),
-            (0o0644, "rw-r--r--"),
-            (0o0755, "rwxr-xr-x"),
-            (0o1712, "rwx--x-wT"),
-            (0o1000, "--------T"),
-            (0o1001, "--------t"),
-            (0o2000, "-----S---"),
-            (0o2010, "-----s---"),
-            (0o4000, "--S------"),
-            (0o4100, "--s------"),
-            (0o7666, "rwSrwSrwT"),
-            (0o7777, "rwsrwsrwt"),
+            (0o000,  "000: ---------"),
+            (0o644,  "644: rw-r--r--"),
+            (0o755,  "755: rwxr-xr-x"),
+            (0o0000, "000: ---------"),
+            (0o0644, "644: rw-r--r--"),
+            (0o0755, "755: rwxr-xr-x"),
+            (0o1712, "1712: rwx--x-wT"),
+            (0o1000, "1000: --------T"),
+            (0o1001, "1001: --------t"),
+            (0o2000, "2000: -----S---"),
+            (0o2010, "2010: -----s---"),
+            (0o4000, "4000: --S------"),
+            (0o4100, "4100: --s------"),
+            (0o7666, "7666: rwSrwSrwT"),
+            (0o7777, "7777: rwsrwsrwt"),
         ];
 
         for test in tests {
@@ -207,24 +250,25 @@ mod tests {
     #[test]
     fn test_display_from_string() {
         let tests = vec![
-            ("000",   "---------"),
-            ("644",   "rw-r--r--"),
-            ("755",   "rwxr-xr-x"),
-            ("0000",  "---------"),
-            ("0644",  "rw-r--r--"),
-            ("0755",  "rwxr-xr-x"),
-            ("1712",  "rwx--x-wT"),
-            ("1000",  "--------T"),
-            ("2000",  "-----S---"),
-            ("4000",  "--S------"),
-            ("1001",  "--------t"),
-            ("2010",  "-----s---"),
-            ("4100",  "--s------"),
-            ("7666",  "rwSrwSrwT"),
-            ("7777",  "rwsrwsrwt"),
-            ("755 ",  "rwxr-xr-x"),
-            (" 755",  "rwxr-xr-x"),
-            (" 755 ", "rwxr-xr-x"),
+            ("000",       "000: ---------"),
+            ("644",       "644: rw-r--r--"),
+            ("755",       "755: rwxr-xr-x"),
+            ("0000",      "000: ---------"),
+            ("0644",      "644: rw-r--r--"),
+            ("0755",      "755: rwxr-xr-x"),
+            ("1712",      "1712: rwx--x-wT"),
+            ("1000",      "1000: --------T"),
+            ("2000",      "2000: -----S---"),
+            ("4000",      "4000: --S------"),
+            ("1001",      "1001: --------t"),
+            ("2010",      "2010: -----s---"),
+            ("4100",      "4100: --s------"),
+            ("7666",      "7666: rwSrwSrwT"),
+            ("7777",      "7777: rwsrwsrwt"),
+            ("755 ",      "755: rwxr-xr-x"),
+            (" 755",      "755: rwxr-xr-x"),
+            (" 755 ",     "755: rwxr-xr-x"),
+            ("rwxrwxrwx", "777: rwxrwxrwx"),
         ];
 
         for test in tests {
