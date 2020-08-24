@@ -1,0 +1,38 @@
+---
+name: 'Continuous Integration'
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  test:
+    name: 'Test Suite'
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        # Test against current stable and the MSRV
+        toolchain-version:
+          - 'stable'
+          - '1.37.0'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v2'
+        with:
+          fetch-depth: 1
+      - name: 'Target Cache'
+        uses: 'actions/cache@v1'
+        env:
+          cache-name: 'target-cache'
+        with:
+          path: 'target'
+          key: "${{ matrix.toolchain-version }}-${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}"
+      - name: 'Install Toolchain'
+        uses: 'actions-rs/toolchain@v1'
+        with:
+          profile: 'minimal'
+          toolchain: '${{ matrix.toolchain-version }}'
+          override: true
+      - name: 'Run Tests'
+        uses: 'actions-rs/cargo@v1'
+        with:
+          command: 'test'
