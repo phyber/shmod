@@ -158,7 +158,7 @@ impl FromStr for Mode {
                 // should be > 7.
                 // String is processed in reverse to ensure bits are shifted
                 // correctly.
-                for (i, c) in input.trim().chars().rev().enumerate() {
+                for (i, c) in input.chars().rev().enumerate() {
                     let digit: usize = c.to_string().parse()?;
 
                     // Octal is 3 bits, so we shift by 3 for each digit.
