@@ -3,7 +3,10 @@ use super::Error;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 
+// Possible characters in a file mode.
 const VALID_FILE_MODE: &[char] = &['-', 'r', 'w', 'x', 's', 'S', 't', 'T'];
+
+// Possible characters in an octal string
 const VALID_OCTAL: RangeInclusive<char> = RangeInclusive::new('0', '7');
 
 // Characters allowed in positions that can't contain special characters
@@ -17,7 +20,9 @@ const OTH_EXEC_CHARS: &[char] = &['-', 'x', 't', 'T'];
 
 #[derive(Debug, PartialEq)]
 pub enum ModeType {
+    // Represents a string style mode, eg. rwxr-xr-x
     FileMode,
+    // Represents an octal mode, eg. 0755
     OctalNumeric,
 }
 
@@ -35,9 +40,7 @@ impl FromStr for ModeType {
 
         // Check for input composed entirely of valid octal characters
         if input.chars().all(|c| VALID_OCTAL.contains(&c)) {
-            let mt = Self::OctalNumeric;
-
-            return Ok(mt);
+            return Ok(Self::OctalNumeric);
         }
 
         // Check for input composed entirely of valid file mode characters
@@ -65,9 +68,7 @@ impl FromStr for ModeType {
                 }
             }
 
-            let mt = Self::FileMode;
-
-            return Ok(mt);
+            return Ok(Self::FileMode);
         }
 
         Err(Error::InvalidModeString)
