@@ -122,6 +122,10 @@ impl Mode {
     fn is_exec(&self, mask: usize) -> bool {
         self.0 & mask > 0
     }
+
+    fn set_bits(&mut self, bits: usize) {
+        self.0 |= bits
+    }
 }
 
 impl fmt::Display for Mode {
@@ -143,32 +147,31 @@ impl FromStr for Mode {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         // Trims leading and trailing whitespace from the input before
         // processing it.
-        let input = input.trim();
+        let input    = input.trim();
+        let mut mode = Self::new(0);
 
-        let output = match ModeType::from_str(input)? {
+        match ModeType::from_str(input)? {
             ModeType::OctalNumeric => {
-                let mut output = 0;
-
                 // Characters were checked for validity during ModeType parsing
                 // so we should always parse successfully here and no digits
                 // should be > 7.
-                for c in input.trim().chars() {
+                // String is processed in reverse to ensure bits are shifted
+                // correctly.
+                for (i, c) in input.trim().chars().rev().enumerate() {
                     let digit: usize = c.to_string().parse()?;
 
                     // Octal is 3 bits, so we shift by 3 for each digit.
-                    output = (output << 3) | digit;
+                    let bits = digit << 3 * i;
+                    mode.set_bits(bits);
                 }
-
-                output
             },
             ModeType::FileMode => {
-                let mut output = 0;
-                let mut index  = 8;
+                let mut index = 8;
 
                 for (i, c) in input.chars().enumerate() {
                     match c {
                         'r' | 'w' | 'x' => {
-                            output |= 0o0001 << index;
+                            mode.set_bits(0o0001 << index);
                         },
                         's' | 'S' => {
                             let bit = match i {
@@ -177,17 +180,17 @@ impl FromStr for Mode {
                                 _ => unreachable!(),
                             };
 
-                            output |= bit;
+                            mode.set_bits(bit);
 
                             if c == 's' {
-                                output |= 0o0001 << index;
+                                mode.set_bits(0o0001 << index);
                             }
                         },
                         't' | 'T' => {
-                            output |= 0o1000;
+                            mode.set_bits(0o1000);
 
                             if c == 't' {
-                                output |= 0o0001 << index;
+                                mode.set_bits(0o0001 << index);
                             }
                         },
                         '-' => {},
@@ -196,12 +199,8 @@ impl FromStr for Mode {
 
                     index -= 1;
                 }
-
-                output
             },
         };
-
-        let mode = Self::new(output);
 
         Ok(mode)
     }
@@ -262,6 +261,8 @@ mod tests {
             (" 755",      "755: rwxr-xr-x"),
             (" 755 ",     "755: rwxr-xr-x"),
             ("rwxrwxrwx", "777: rwxrwxrwx"),
+            ("rwSrwSrwT", "7666: rwSrwSrwT"),
+            ("rwsrwsrwt", "7777: rwsrwsrwt"),
         ];
 
         for test in tests {
