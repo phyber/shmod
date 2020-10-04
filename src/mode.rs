@@ -162,7 +162,7 @@ impl FromStr for Mode {
                     let digit: usize = c.to_string().parse()?;
 
                     // Octal is 3 bits, so we shift by 3 for each digit.
-                    let bits = digit << 3 * i;
+                    let bits = digit << (3 * i);
                     mode.set_bits(bits);
                 }
             },
